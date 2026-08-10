@@ -1,0 +1,12 @@
+terminal = "xterm"
+font = "fixed"
+border_width = 2
+gap = 0
+bar_height = 22
+
+[colors]
+bar_bg = "#1a1a1a"
+bar_fg = "#cccccc"
+bar_active_bg = "#4a4a4a"
+border_active = "#5f87af"
+border_inactive = "#333333"
