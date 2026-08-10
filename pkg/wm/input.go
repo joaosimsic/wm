@@ -101,7 +101,9 @@ func (wm *WM) handleKeyPress(ev xproto.KeyPressEvent) {
 	case types.ActionClose:
 		wm.closeFocused()
 	case types.ActionTerminal:
-		wm.launch(wm.conf.Terminal)
+		if err := wm.launch(wm.conf.Terminal); err != nil {
+			fmt.Fprintf(os.Stderr, "launch terminal: %v\n", err)
+		}
 	case types.ActionWS1, types.ActionWS2, types.ActionWS3, types.ActionWS4, types.ActionWS5,
 		types.ActionWS6, types.ActionWS7, types.ActionWS8, types.ActionWS9, types.ActionWS10:
 		for i, a := range wsActions {

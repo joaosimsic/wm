@@ -84,19 +84,6 @@ func (wm *WM) initEWMH() error {
 	return nil
 }
 
-func (wm *WM) ewmhSendClientMessage(win xproto.Window, msgType string, data [5]uint32) {
-	ev := xproto.ClientMessageEvent{
-		Format: 32,
-		Window: win,
-		Type:   wm.atom(msgType),
-		Data:   xproto.ClientMessageDataUnionData32New(data[:]),
-	}
-
-	xproto.SendEvent(wm.xu, false, wm.root,
-		uint32(xproto.EventMaskSubstructureRedirect),
-		string(ev.Bytes()))
-}
-
 func (wm *WM) ewmhCloseWindow(client xproto.Window) {
 	ev := xproto.ClientMessageEvent{
 		Format: 32,

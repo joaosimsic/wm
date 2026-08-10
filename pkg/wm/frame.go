@@ -98,7 +98,11 @@ func (wm *WM) launch(cmd string) error {
 		return fmt.Errorf("start %s: %w", cmd, err)
 	}
 
-	go c.Wait()
+	go func() {
+		if err := c.Wait(); err != nil {
+			fmt.Fprintf(os.Stderr, "command %s: %v\n", cmd, err)
+		}
+	}()
 	return nil
 }
 

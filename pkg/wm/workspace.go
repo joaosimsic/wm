@@ -40,10 +40,10 @@ func (wm *WM) switchWorkspace(ws int) {
 	wm.bar.Update(wm.mode, wm.currentWS, wm.cmdBuffer, wm.focusedTitle())
 }
 
-func (wm *WM) tileWorkspace() error {
+func (wm *WM) tileWorkspace() {
 	ws := wm.workspaces[wm.currentWS]
 	if ws.Root == nil {
-		return nil
+		return
 	}
 
 	sw := int(wm.screen.WidthInPixels)
@@ -56,7 +56,6 @@ func (wm *WM) tileWorkspace() error {
 
 	ws.Root.Tile(area, bw, gap)
 	wm.applyLayout(ws.Root)
-	return nil
 }
 
 func (wm *WM) scanExistingWindows() error {
