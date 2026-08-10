@@ -21,11 +21,11 @@ func FindKeycode(conn *xgb.Conn, keysym xproto.Keysym) (xproto.Keycode, bool) {
 	}
 
 	kps := len(reply.Keysyms) / int(maxKc-minKc+1)
-	for i := minKc; i <= maxKc; i++ {
-		idx := int(i-minKc) * kps
+	for i := int(minKc); i <= int(maxKc); i++ {
+		idx := (i - int(minKc)) * kps
 		for j := 0; j < kps && idx+j < len(reply.Keysyms); j++ {
 			if reply.Keysyms[idx+j] == keysym {
-				return i, true
+				return xproto.Keycode(i), true
 			}
 		}
 	}

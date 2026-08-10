@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/BurntSushi/xgb"
@@ -37,9 +38,11 @@ type WM struct {
 	borderInactive uint32
 
 	windows   map[xproto.Window]*layout.ManagedWindow
+	frames    map[xproto.Window]*layout.ManagedWindow
 	cmdBuffer string
 
 	running   bool
+	connAlive bool
 	closeOnce sync.Once
 
 	ewmhAtoms map[string]xproto.Atom
@@ -80,8 +83,10 @@ func New() (*WM, error) {
 		currentWS:  0,
 		conf:       conf,
 		windows:    make(map[xproto.Window]*layout.ManagedWindow),
+		frames:     make(map[xproto.Window]*layout.ManagedWindow),
 		workspaces: make([]*Workspace, 10),
 		running:    true,
+		connAlive:  true,
 		ewmhAtoms:  make(map[string]xproto.Atom),
 	}
 
@@ -134,24 +139,44 @@ func (wm *WM) Run() error {
 	wm.tileWorkspace()
 	fmt.Fprintf(os.Stderr, "wm: entering event loop\n")
 
+	events := make(chan xgb.Event, 16)
+	errors := make(chan xgb.Error, 16)
+	go wm.readEvents(events, errors)
+
 	for wm.running {
-		ev, xerr := wm.xu.WaitForEvent()
-		if xerr != nil {
-			if !wm.running {
-				break
+		select {
+		case ev, ok := <-events:
+			if !ok {
+				wm.running = false
+				wm.connAlive = false
+				continue
 			}
-			fmt.Fprintf(os.Stderr, "protocol error: %v\n", xerr)
-			continue
+			wm.handleEvent(ev)
+		case err := <-errors:
+			if wm.running {
+				fmt.Fprintf(os.Stderr, "protocol error: %v\n", err)
+			}
+		case <-time.After(5 * time.Millisecond):
 		}
-		if ev == nil {
-			wm.running = false
-			break
-		}
-		wm.handleEvent(ev)
 	}
 
 	wm.shutdown()
 	return nil
+}
+
+func (wm *WM) readEvents(events chan<- xgb.Event, errors chan<- xgb.Error) {
+	for {
+		ev, err := wm.xu.WaitForEvent()
+		if ev == nil && err == nil {
+			close(events)
+			return
+		}
+		if err != nil {
+			errors <- err
+			continue
+		}
+		events <- ev
+	}
 }
 
 func (wm *WM) Stop() {
@@ -160,10 +185,10 @@ func (wm *WM) Stop() {
 
 func (wm *WM) shutdown() {
 	wm.closeOnce.Do(func() {
-		if !wm.running {
+		wm.running = false
+		if !wm.connAlive {
 			return
 		}
-		wm.running = false
 		for _, mw := range wm.windows {
 			xproto.ReparentWindow(wm.xu, mw.Client, wm.root, 0, 0)
 			xproto.DestroyWindow(wm.xu, mw.Frame)

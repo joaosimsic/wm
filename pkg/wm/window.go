@@ -31,8 +31,9 @@ func (wm *WM) manageWindow(client xproto.Window) {
 	}
 
 	wm.windows[client] = mw
+	wm.frames[frame] = mw
 
-	xproto.ReparentWindow(wm.xu, client, frame, int16(bw), int16(bw))
+	xproto.ReparentWindow(wm.xu, client, frame, 0, 0)
 	xproto.ChangeSaveSet(wm.xu, xproto.SetModeInsert, client)
 
 	xproto.MapWindow(wm.xu, frame)
@@ -54,15 +55,15 @@ func (wm *WM) manageWindow(client xproto.Window) {
 
 func (wm *WM) createFrame(geom *xproto.GetGeometryReply, bw int) xproto.Window {
 	frame, _ := xproto.NewWindowId(wm.xu)
-	fw := uint16(geom.Width) + uint16(2*bw)
-	fh := uint16(geom.Height) + uint16(2*bw)
+	fw := uint16(geom.Width)
+	fh := uint16(geom.Height)
 
 	xproto.CreateWindow(wm.xu,
 		wm.screen.RootDepth,
 		frame,
 		wm.root,
-		int16(geom.X)-int16(bw),
-		int16(geom.Y)-int16(bw),
+		int16(geom.X),
+		int16(geom.Y),
 		fw, fh,
 		uint16(bw),
 		xproto.WindowClassInputOutput,
@@ -178,6 +179,7 @@ func (wm *WM) removeWindow(client xproto.Window) {
 
 	xproto.DestroyWindow(wm.xu, mw.Frame)
 	delete(wm.windows, client)
+	delete(wm.frames, mw.Frame)
 
 	wm.tileWorkspace()
 	wm.updateBorders()

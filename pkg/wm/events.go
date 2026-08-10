@@ -28,8 +28,19 @@ func (wm *WM) handleEvent(ev xgb.Event) {
 	case xproto.PropertyNotifyEvent:
 		wm.handlePropertyNotify(e)
 	case xproto.EnterNotifyEvent:
-		_ = e
+		wm.handleEnterNotify(e)
 	}
+}
+
+func (wm *WM) handleEnterNotify(ev xproto.EnterNotifyEvent) {
+	mw, ok := wm.frames[ev.Event]
+	if !ok {
+		return
+	}
+	if mw == wm.focused {
+		return
+	}
+	wm.setFocusByWindow(mw.Client)
 }
 
 func (wm *WM) handleMapRequest(ev xproto.MapRequestEvent) {

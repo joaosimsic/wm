@@ -66,8 +66,8 @@ func (wm *WM) applyLayout(c *layout.Container) {
 				xproto.ConfigWindowWidth|xproto.ConfigWindowHeight|
 				xproto.ConfigWindowBorderWidth,
 			[]uint32{
-				uint32(r.X - bw), uint32(r.Y - bw),
-				uint32(r.W + 2*bw), uint32(r.H + 2*bw),
+				uint32(r.X), uint32(r.Y),
+				uint32(r.W), uint32(r.H),
 				bw32,
 			})
 

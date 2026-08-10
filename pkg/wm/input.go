@@ -35,10 +35,10 @@ var resizeDeltas = map[types.Action]float64{
 
 func (wm *WM) keycodeToSym(code xproto.Keycode, state uint16) string {
 	si := xproto.Setup(wm.xu)
-	minKc := si.MinKeycode
-	maxKc := si.MaxKeycode
+	minKc := int(si.MinKeycode)
+	maxKc := int(si.MaxKeycode)
 
-	if code < minKc || code > maxKc {
+	if int(code) < minKc || int(code) > maxKc {
 		return ""
 	}
 
@@ -47,7 +47,7 @@ func (wm *WM) keycodeToSym(code xproto.Keycode, state uint16) string {
 		return ""
 	}
 
-	kps := len(reply.Keysyms) / int(maxKc-minKc+1)
+	kps := len(reply.Keysyms)
 	idx := 0
 	if state&types.ShiftMask != 0 && kps >= 2 {
 		idx = 1
@@ -135,10 +135,12 @@ func (wm *WM) handleCommandKey(ev xproto.KeyPressEvent) {
 	case "Escape":
 		wm.mode = types.ModeNormal
 		wm.cmdBuffer = ""
+		wm.ungrabKeyboard()
 	case "Return":
 		wm.executeCommandString(wm.cmdBuffer)
 		wm.mode = types.ModeNormal
 		wm.cmdBuffer = ""
+		wm.ungrabKeyboard()
 	case "BackSpace":
 		if len(wm.cmdBuffer) > 0 {
 			wm.cmdBuffer = wm.cmdBuffer[:len(wm.cmdBuffer)-1]
@@ -190,7 +192,25 @@ func (wm *WM) resizeWindow(delta float64) {
 func (wm *WM) enterCommandMode() {
 	wm.mode = types.ModeCommand
 	wm.cmdBuffer = ""
+	wm.grabKeyboard()
 	wm.bar.Update(wm.mode, wm.currentWS, wm.cmdBuffer, wm.focusedTitle())
+}
+
+func (wm *WM) grabKeyboard() {
+	reply, err := xproto.GrabKeyboard(wm.xu, false, wm.root,
+		xproto.TimeCurrentTime, xproto.GrabModeAsync, xproto.GrabModeAsync).Reply()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "grab keyboard: %v\n", err)
+		return
+	}
+	if reply.Status != xproto.GrabStatusSuccess {
+		fmt.Fprintf(os.Stderr, "grab keyboard failed: status %d\n", reply.Status)
+		wm.mode = types.ModeNormal
+	}
+}
+
+func (wm *WM) ungrabKeyboard() {
+	xproto.UngrabKeyboard(wm.xu, xproto.TimeCurrentTime)
 }
 
 func (wm *WM) executeCommandString(input string) {

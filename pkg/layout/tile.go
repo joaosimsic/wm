@@ -19,7 +19,13 @@ func (c *Container) FixChildren() {
 }
 
 func (c *Container) Tile(area Rect, bw int, gap int) {
-	if c == nil || c.Type == ContainerLeaf {
+	if c == nil {
+		return
+	}
+	if c.Type == ContainerLeaf {
+		if c.Window != nil {
+			c.Window.SetGeom(area)
+		}
 		return
 	}
 

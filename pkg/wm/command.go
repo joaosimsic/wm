@@ -35,7 +35,7 @@ func cmdSplit(wm *WM, cmd *types.Cmd) error {
 		prog = wm.conf.Terminal
 	}
 	wm.pendingSplit = true
-	wm.pendingDir = layout.ContainerVSplit
+	wm.pendingDir = layout.ContainerHSplit
 	return wm.launch(prog)
 }
 
@@ -45,7 +45,7 @@ func cmdVSplit(wm *WM, cmd *types.Cmd) error {
 		prog = wm.conf.Terminal
 	}
 	wm.pendingSplit = true
-	wm.pendingDir = layout.ContainerHSplit
+	wm.pendingDir = layout.ContainerVSplit
 	return wm.launch(prog)
 }
 
