@@ -2,6 +2,7 @@ package x11
 
 import (
 	"github.com/jezek/xgb"
+	"github.com/jezek/xgb/xproto"
 )
 
 type Connection struct {
@@ -21,4 +22,24 @@ func Connect() (*Connection, error) {
 
 func (c *Connection) Close() {
 	c.conn.Close()
+}
+
+func (c *Connection) Raw() *xgb.Conn {
+	return c.conn
+}
+
+func (c *Connection) Screen() *xproto.ScreenInfo {
+	return xproto.Setup(c.conn).DefaultScreen(c.conn)
+}
+
+func (c *Connection) RootWindow() xproto.Window {
+	return c.Screen().Root
+}
+
+func (c *Connection) NewWindowID() (xproto.Window, error) {
+	return xproto.NewWindowId(c.conn)
+}
+
+func (c *Connection) WaitForEvent() (xgb.Event, xgb.Error) {
+	return c.conn.WaitForEvent()
 }
