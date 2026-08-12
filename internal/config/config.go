@@ -24,20 +24,25 @@ type Colors struct {
 }
 
 func Load() (*Config, error) {
-	cfg := defaultConfig()
+	cfg := Default()
 
 	path, err := defaultPath()
 	if err != nil {
-		return &cfg, fmt.Errorf("get config path: %w", err)
+		return &cfg, fmt.Errorf("config path: %w", err)
 	}
 
 	file, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return &cfg, nil
+		return &cfg, fmt.Errorf("config file %s not found, using defaults", path)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("read config: %w", err)
+		return &cfg, fmt.Errorf("read config %s: %w, using defaults", path, err)
 	}
 
-	return &cfg, parse(file, &cfg)
+	if err := parse(file, &cfg); err != nil {
+		cfg = Default()
+		return &cfg, fmt.Errorf("parse config %s: %w, using defaults", path, err)
+	}
+
+	return &cfg, errors.Join(validate(&cfg)...)
 }

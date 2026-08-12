@@ -43,3 +43,20 @@ func (c *Connection) NewWindowID() (xproto.Window, error) {
 func (c *Connection) WaitForEvent() (xgb.Event, xgb.Error) {
 	return c.conn.WaitForEvent()
 }
+
+func (c *Connection) Colormap() xproto.Colormap {
+	return c.Screen().DefaultColormap
+}
+
+func (c *Connection) BlackPixel() uint32 { return uint32(c.Screen().BlackPixel) }
+
+func (c *Connection) WhitePixel() uint32 { return uint32(c.Screen().WhitePixel) }
+
+func (c *Connection) AllocColor(r, g, b uint16) (uint32, error) {
+	reply, err := xproto.AllocColor(c.conn, c.Colormap(), r, g, b).Reply()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(reply.Pixel), nil
+}
