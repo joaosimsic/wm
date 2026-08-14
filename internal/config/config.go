@@ -15,14 +15,6 @@ type Config struct {
 	Colors      Colors `toml:"colors"`
 }
 
-type Colors struct {
-	BarBg          string `toml:"bar_bg"`
-	BarFg          string `toml:"bar_fg"`
-	BarActiveBg    string `toml:"bar_active_bg"`
-	BorderActive   string `toml:"border_active"`
-	BorderInactive string `toml:"border_inactive"`
-}
-
 func Load() (*Config, error) {
 	cfg := Default()
 

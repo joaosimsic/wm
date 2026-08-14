@@ -2,72 +2,71 @@ package config
 
 import "fmt"
 
-type RGB struct {
+type Color struct {
 	R uint8
 	G uint8
 	B uint8
 }
 
-type RGBColors struct {
-	BarBg          RGB
-	BarFg          RGB
-	BarActiveBg    RGB
-	BorderActive   RGB
-	BorderInactive RGB
+type Colors struct {
+	BarBg          Color `toml:"bar_bg"`
+	BarFg          Color `toml:"bar_fg"`
+	BarActiveBg    Color `toml:"bar_active_bg"`
+	BorderActive   Color `toml:"border_active"`
+	BorderInactive Color `toml:"border_inactive"`
 }
 
-func (c Colors) RGB() (RGBColors, error) {
-	var out RGBColors
-	var err error
-
-	if out.BarBg, err = hexToRGB(c.BarBg); err != nil {
-		return RGBColors{}, fmt.Errorf("bar_bg: %w", err)
+func DefaultColors() Colors {
+	return Colors{
+		BarBg:          MustParseHex("#1a1a1a"),
+		BarFg:          MustParseHex("#cccccc"),
+		BarActiveBg:    MustParseHex("#4a4a4a"),
+		BorderActive:   MustParseHex("#5f87af"),
+		BorderInactive: MustParseHex("#333333"),
 	}
-
-	if out.BarFg, err = hexToRGB(c.BarFg); err != nil {
-		return RGBColors{}, fmt.Errorf("bar_fg: %w", err)
-	}
-
-	if out.BarActiveBg, err = hexToRGB(c.BarActiveBg); err != nil {
-		return RGBColors{}, fmt.Errorf("bar_active_bg: %w", err)
-	}
-
-	if out.BorderActive, err = hexToRGB(c.BorderActive); err != nil {
-		return RGBColors{}, fmt.Errorf("border_active: %w", err)
-	}
-
-	if out.BorderInactive, err = hexToRGB(c.BorderInactive); err != nil {
-		return RGBColors{}, fmt.Errorf("border_inactive: %w", err)
-	}
-
-	return out, nil
 }
 
-func hexToRGB(hex string) (RGB, error) {
-	if len(hex) != 7 || hex[0] != '#' {
-		return RGB{}, fmt.Errorf("invalid color: %q (want #RRGGBB)", hex)
+func ParseHex(s string) (Color, error) {
+	if len(s) != 7 || s[0] != '#' {
+		return Color{}, fmt.Errorf("invalid color: %q (want #RRGGBB)", s)
 	}
 
-	r, err := hexByte(hex[1], hex[2])
+	r, err := hexByte(s[1], s[2])
 	if err != nil {
-		return RGB{}, fmt.Errorf("invalid color %q: %w", hex, err)
+		return Color{}, fmt.Errorf("invalid color %q: %w", s, err)
 	}
 
-	g, err := hexByte(hex[3], hex[4])
+	g, err := hexByte(s[3], s[4])
 	if err != nil {
-		return RGB{}, fmt.Errorf("invalid color %q: %w", hex, err)
+		return Color{}, fmt.Errorf("invalid color %q: %w", s, err)
 	}
 
-	b, err := hexByte(hex[5], hex[6])
+	b, err := hexByte(s[5], s[6])
 	if err != nil {
-		return RGB{}, fmt.Errorf("invalid color %q: %w", hex, err)
+		return Color{}, fmt.Errorf("invalid color %q: %w", s, err)
 	}
 
-	return RGB{
-		R: r,
-		G: g,
-		B: b,
-	}, nil
+	return Color{R: r, G: g, B: b}, nil
+}
+
+func MustParseHex(s string) Color {
+	c, err := ParseHex(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return c
+}
+
+func (c *Color) UnmarshalText(text []byte) error {
+	parsed, err := ParseHex(string(text))
+	if err != nil {
+		return err
+	}
+
+	*c = parsed
+
+	return nil
 }
 
 func hexByte(hi, lo byte) (uint8, error) {
