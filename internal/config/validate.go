@@ -4,6 +4,7 @@ import "fmt"
 
 func validate(cfg *Config) []error {
 	def := Default()
+
 	var errs []error
 
 	if cfg.BorderWidth < 0 {
@@ -29,29 +30,6 @@ func validate(cfg *Config) []error {
 	if cfg.Font == "" {
 		errs = append(errs, fmt.Errorf("font missing, using default %q", def.Font))
 		cfg.Font = def.Font
-	}
-
-	fallbacks := map[string]string{
-		"bar_bg":          def.Colors.BarBg,
-		"bar_fg":          def.Colors.BarFg,
-		"bar_active_bg":   def.Colors.BarActiveBg,
-		"border_active":   def.Colors.BorderActive,
-		"border_inactive": def.Colors.BorderInactive,
-	}
-
-	fields := map[string]*string{
-		"bar_bg":          &cfg.Colors.BarBg,
-		"bar_fg":          &cfg.Colors.BarFg,
-		"bar_active_bg":   &cfg.Colors.BarActiveBg,
-		"border_active":   &cfg.Colors.BorderActive,
-		"border_inactive": &cfg.Colors.BorderInactive,
-	}
-
-	for name := range fallbacks {
-		if _, err := hexToRGB(*fields[name]); err != nil {
-			errs = append(errs, fmt.Errorf("colors.%s: %v, using default %s", name, err, fallbacks[name]))
-			*fields[name] = fallbacks[name]
-		}
 	}
 
 	return errs

@@ -7,12 +7,6 @@ func Default() Config {
 		BorderWidth: 2,
 		Gap:         0,
 		BarHeight:   22,
-		Colors: Colors{
-			BarBg:          "#1a1a1a",
-			BarFg:          "#cccccc",
-			BarActiveBg:    "#4a4a4a",
-			BorderActive:   "#5f87af",
-			BorderInactive: "#333333",
-		},
+		Colors:      DefaultColors(),
 	}
 }

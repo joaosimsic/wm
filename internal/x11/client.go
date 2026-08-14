@@ -9,6 +9,10 @@ type Connection struct {
 	conn *xgb.Conn
 }
 
+type RGB struct {
+	R, G, B uint8
+}
+
 func Connect() (*Connection, error) {
 	conn, err := xgb.NewConn()
 	if err != nil {
@@ -59,4 +63,12 @@ func (c *Connection) AllocColor(r, g, b uint16) (uint32, error) {
 	}
 
 	return uint32(reply.Pixel), nil
+}
+
+func (c *Connection) AllocColorRGB(rgb RGB) (uint32, error) {
+	return c.AllocColor(scale16(rgb.R), scale16(rgb.G), scale16(rgb.B))
+}
+
+func scale16(v uint8) uint16 {
+	return uint16(v)<<8 | uint16(v)
 }
