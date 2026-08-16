@@ -7,6 +7,7 @@ import (
 
 type Connection struct {
 	conn *xgb.Conn
+    atoms map[string]xproto.Atom
 }
 
 type RGB struct {
