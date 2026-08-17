@@ -8,15 +8,10 @@ import (
 )
 
 func (c *Connection) GrabKey(win xproto.Window, keycode xproto.Keycode, mods uint16) error {
-	return xproto.GrabKeyChecked(
-		c.conn,
-		true,
-		win,
-		mods,
-		keycode,
-		xproto.GrabModeAsync,
-		xproto.GrabModeAsync,
-	).Check()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.grabKey(win, keycode, mods)
 }
 
 func (c *Connection) UngrabKey(
@@ -24,12 +19,10 @@ func (c *Connection) UngrabKey(
 	keycode xproto.Keycode,
 	mods uint16,
 ) error {
-	return xproto.UngrabKeyChecked(
-		c.conn,
-		keycode,
-		win,
-		mods,
-	).Check()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.ungrabKey(win, keycode, mods)
 }
 
 func (c *Connection) GrabAllCombos(
@@ -38,25 +31,13 @@ func (c *Connection) GrabAllCombos(
 	mods uint16,
 	numlock uint16,
 ) error {
-	combos := []uint16{
-		mods,
-		mods | xproto.KeyButMaskLock,
-		mods | numlock,
-		mods | xproto.KeyButMaskLock | numlock,
-	}
-
-	grabbed := make(map[uint16]bool)
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	var failure []error
 
-	for _, m := range combos {
-		if grabbed[m] {
-			continue
-		}
-
-		grabbed[m] = true
-
-		if err := c.GrabKey(win, keycode, m); err != nil {
+	for _, m := range combos(mods, numlock) {
+		if err := c.grabKey(win, keycode, m); err != nil {
 			failure = append(failure, fmt.Errorf("keycode %d mods 0x%x: %w", keycode, m, err))
 		}
 	}
@@ -73,32 +54,65 @@ func (c *Connection) UngrabAllCombos(
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	combos := []uint16{
+	var failure []error
+
+	for _, m := range combos(mods, numlock) {
+		if err := c.ungrabKey(win, keycode, m); err != nil {
+			failure = append(failure, fmt.Errorf("keycode %d mods 0x%x: %w", keycode, m, err))
+		}
+	}
+
+	return errors.Join(failure...)
+}
+
+func combos(mods, numlock uint16) []uint16 {
+	all := []uint16{
 		mods,
 		mods | xproto.KeyButMaskLock,
 		mods | numlock,
 		mods | xproto.KeyButMaskLock | numlock,
 	}
 
-	var failures []error
+	seen := make(map[uint16]struct{}, len(all))
+	result := make([]uint16, 0, len(all))
 
-	for _, m := range combos {
-		if err := c.UngrabKey(
-			win,
-			keycode,
-			m,
-		); err != nil {
-			failures = append(
-				failures,
-				fmt.Errorf(
-					"keycode %d mods 0x%x: %w",
-					keycode,
-					m,
-					err,
-				),
-			)
+	for _, m := range all {
+		if _, ok := seen[m]; ok {
+			continue
 		}
+
+		seen[m] = struct{}{}
+		result = append(result, m)
 	}
 
-	return errors.Join(failures...)
+	return result
+}
+
+func (c *Connection) grabKey(
+	win xproto.Window,
+	keycode xproto.Keycode,
+	mods uint16,
+) error {
+	return xproto.GrabKeyChecked(
+		c.conn,
+		true,
+		win,
+		mods,
+		keycode,
+		xproto.GrabModeAsync,
+		xproto.GrabModeAsync,
+	).Check()
+}
+
+func (c *Connection) ungrabKey(
+	win xproto.Window,
+	keycode xproto.Keycode,
+	mods uint16,
+) error {
+	return xproto.UngrabKeyChecked(
+		c.conn,
+		keycode,
+		win,
+		mods,
+	).Check()
 }

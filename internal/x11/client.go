@@ -1,6 +1,8 @@
 package x11
 
 import (
+	"sync"
+
 	"github.com/jezek/xgb"
 	"github.com/jezek/xgb/xproto"
 )
@@ -8,6 +10,7 @@ import (
 type Connection struct {
 	conn *xgb.Conn
     atoms map[string]xproto.Atom
+	mu sync.Mutex
 }
 
 type RGB struct {

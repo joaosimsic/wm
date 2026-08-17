@@ -88,7 +88,7 @@ func numLockMaskFromMapping(
 		numLockKeycodesMap[keycode] = struct{}{}
 	}
 
-	for mod := 0; mod < modifierSlots; mod++ {
+	for mod := range modifierSlots {
 		start := mod * keycodePerMod
 		end := min(start+keycodePerMod, len(reply.Keycodes))
 
