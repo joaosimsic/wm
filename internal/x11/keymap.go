@@ -1,6 +1,11 @@
 package x11
 
-import "github.com/jezek/xgb/xproto"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/jezek/xgb/xproto"
+)
 
 const KeysymNumLock = 0xff7f
 
@@ -28,44 +33,32 @@ type KeyMapping struct {
 	keycodesByKeysym  map[xproto.Keysym][]xproto.Keycode
 }
 
-func newKeyMapping(
-	minCode xproto.Keycode,
-	maxCode xproto.Keycode,
-	keysymsPerKeycode byte,
-	keysyms []xproto.Keysym,
-) *KeyMapping {
-    m := &KeyMapping{
-		minCode:           minCode,
-		maxCode:           maxCode,
-		keysymsPerKeycode: keysymsPerKeycode,
-		keysyms:           keysyms,
-		keycodesByKeysym:  make(map[xproto.Keysym][]xproto.Keycode),
-	}
+func ParseModifiers(names ...string) (uint16, error) {
+	var mask uint16
 
-    m.buildInverseMapping()
-
-    return m
-}
-
-func (m *KeyMapping) buildInverseMapping() {
-	if m.keysymsPerKeycode == 0 {
-		return
-	}
-
-	for code := m.minCode; code <= m.maxCode; code++ {
-		syms, ok := m.KeysymsForKeycode(code)
-		if !ok {
+	for _, name := range names {
+		key := strings.ToLower(strings.TrimSpace(name))
+		if key == "" {
 			continue
 		}
 
-		for _, sym := range syms {
-			if sym == 0 {
-				continue
-			}
-
-			m.keycodesByKeysym[sym] = append(m.keycodesByKeysym[sym], code)
+		modifier, ok := modifierMap[key]
+		if !ok {
+			return 0, fmt.Errorf("unknown modifier name: %q", name)
 		}
+
+		mask |= modifier
 	}
+
+	return mask, nil
+}
+
+func ParseModifierString(str string) (uint16, error) {
+	if strings.TrimSpace(str) == "" {
+		return 0, nil
+	}
+
+	return ParseModifiers(strings.Split(str, "+")...)
 }
 
 func (m *KeyMapping) KeysymsForKeycode(code xproto.Keycode) ([]xproto.Keysym, bool) {
@@ -94,4 +87,44 @@ func (m *KeyMapping) KeycodesForKeysym(keysym xproto.Keysym) ([]xproto.Keycode, 
 	codes, ok := m.keycodesByKeysym[keysym]
 
 	return codes, ok
+}
+
+func newKeyMapping(
+	minCode xproto.Keycode,
+	maxCode xproto.Keycode,
+	keysymsPerKeycode byte,
+	keysyms []xproto.Keysym,
+) *KeyMapping {
+	m := &KeyMapping{
+		minCode:           minCode,
+		maxCode:           maxCode,
+		keysymsPerKeycode: keysymsPerKeycode,
+		keysyms:           keysyms,
+		keycodesByKeysym:  make(map[xproto.Keysym][]xproto.Keycode),
+	}
+
+	m.buildInverseMapping()
+
+	return m
+}
+
+func (m *KeyMapping) buildInverseMapping() {
+	if m.keysymsPerKeycode == 0 {
+		return
+	}
+
+	for code := m.minCode; code <= m.maxCode; code++ {
+		syms, ok := m.KeysymsForKeycode(code)
+		if !ok {
+			continue
+		}
+
+		for _, sym := range syms {
+			if sym == 0 {
+				continue
+			}
+
+			m.keycodesByKeysym[sym] = append(m.keycodesByKeysym[sym], code)
+		}
+	}
 }
