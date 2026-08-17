@@ -7,7 +7,6 @@ import (
 	"github.com/jezek/xgb/xproto"
 )
 
-S
 func (c *Connection) KeyMapping() (*KeyMapping, error) {
 	setup := xproto.Setup(c.conn)
 
