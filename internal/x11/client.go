@@ -29,10 +29,6 @@ func (c *Connection) Close() {
 	c.conn.Close()
 }
 
-func (c *Connection) Raw() *xgb.Conn {
-	return c.conn
-}
-
 func (c *Connection) Screen() *xproto.ScreenInfo {
 	return xproto.Setup(c.conn).DefaultScreen(c.conn)
 }
