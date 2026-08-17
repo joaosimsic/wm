@@ -8,9 +8,9 @@ import (
 )
 
 type Connection struct {
-	conn *xgb.Conn
-    atoms map[string]xproto.Atom
-	mu sync.Mutex
+	conn  *xgb.Conn
+	atoms map[string]xproto.Atom
+	mu    sync.Mutex
 }
 
 type RGB struct {

@@ -34,15 +34,15 @@ func (c *Connection) GrabAllCombos(
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	var failure []error
+	var failures []error
 
 	for _, m := range combos(mods, numlock) {
 		if err := c.grabKey(win, keycode, m); err != nil {
-			failure = append(failure, fmt.Errorf("keycode %d mods 0x%x: %w", keycode, m, err))
+			failures = append(failures, fmt.Errorf("keycode %d mods 0x%x: %w", keycode, m, err))
 		}
 	}
 
-	return errors.Join(failure...)
+	return errors.Join(failures...)
 }
 
 func (c *Connection) UngrabAllCombos(
@@ -54,15 +54,15 @@ func (c *Connection) UngrabAllCombos(
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	var failure []error
+	var failures []error
 
 	for _, m := range combos(mods, numlock) {
 		if err := c.ungrabKey(win, keycode, m); err != nil {
-			failure = append(failure, fmt.Errorf("keycode %d mods 0x%x: %w", keycode, m, err))
+			failures = append(failures, fmt.Errorf("keycode %d mods 0x%x: %w", keycode, m, err))
 		}
 	}
 
-	return errors.Join(failure...)
+	return errors.Join(failures...)
 }
 
 func combos(mods, numlock uint16) []uint16 {
