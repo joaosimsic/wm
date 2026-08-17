@@ -7,35 +7,7 @@ import (
 	"github.com/jezek/xgb/xproto"
 )
 
-const (
-	KeysymsPerGroup = 2
-	LevelUnshifted  = 0
-	LevelShift      = 1
-)
-
-var modifierMap = map[string]uint16{
-	"shift":   xproto.KeyButMaskShift,
-	"lock":    xproto.KeyButMaskLock,
-	"caps":    xproto.KeyButMaskLock,
-	"control": xproto.KeyButMaskControl,
-	"ctrl":    xproto.KeyButMaskControl,
-	"alt":     xproto.KeyButMaskMod1,
-	"mod1":    xproto.KeyButMaskMod1,
-	"mod2":    xproto.KeyButMaskMod2,
-	"mod3":    xproto.KeyButMaskMod3,
-	"super":   xproto.KeyButMaskMod4,
-	"win":     xproto.KeyButMaskMod4,
-	"mod4":    xproto.KeyButMaskMod4,
-	"mod5":    xproto.KeyButMaskMod5,
-}
-
-type KeyMapping struct {
-	MinCode           xproto.Keycode
-	MaxCode           xproto.Keycode
-	KeysymsPerKeycode byte
-	Keysyms           []xproto.Keysym
-}
-
+S
 func (c *Connection) KeyMapping() (*KeyMapping, error) {
 	setup := xproto.Setup(c.conn)
 

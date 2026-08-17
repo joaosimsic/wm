@@ -47,6 +47,7 @@ func (c *Connection) DrawText(win xproto.Window, gc xproto.Gcontext, x, y int, s
 	if len(s) > 255 {
 		s = s[:255]
 	}
+
 	return xproto.ImageText8Checked(c.conn, byte(len(s)), xproto.Drawable(win), gc, int16(x), int16(y), s).Check()
 }
 
@@ -55,9 +56,11 @@ func (c *Connection) TextWidth(font xproto.Font, s string) (int, error) {
 	for i := range s {
 		chars[i] = xproto.Char2b{Byte1: 0, Byte2: s[i]}
 	}
+
 	reply, err := xproto.QueryTextExtents(c.conn, xproto.Fontable(font), chars, uint16(len(chars))).Reply()
 	if err != nil {
 		return 0, err
 	}
+
 	return int(reply.OverallWidth), nil
 }
