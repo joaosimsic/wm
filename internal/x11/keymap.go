@@ -34,13 +34,17 @@ func newKeyMapping(
 	keysymsPerKeycode byte,
 	keysyms []xproto.Keysym,
 ) *KeyMapping {
-	return &KeyMapping{
+    m := &KeyMapping{
 		minCode:           minCode,
 		maxCode:           maxCode,
 		keysymsPerKeycode: keysymsPerKeycode,
 		keysyms:           keysyms,
 		keycodesByKeysym:  make(map[xproto.Keysym][]xproto.Keycode),
 	}
+
+    m.buildInverseMapping()
+
+    return m
 }
 
 func (m *KeyMapping) buildInverseMapping() {
