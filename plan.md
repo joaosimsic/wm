@@ -41,8 +41,24 @@ Missing (everything that makes it a WM):
 | Keybindings | Config-driven from the start |
 | Bar | Minimal bar included in first milestone |
 | Focus | Keyboard-only (`SetInputFocus`), no mouse focus |
+| X11 connection concurrency | `Connection` owns a `sync.Mutex`; all request/reply methods lock; setup-derived getters stay unlocked (immutable after connect); `WaitForEvent` holds the lock while blocking; composite methods lock once and delegate to unexported unlocked helpers (no re-entrant locking) |
 
 ## Roadmap
+
+### 0. `internal/x11` — connection mutex
+
+`xgb.Conn` is not goroutine-safe. Add `mu sync.Mutex` to `Connection`:
+
+- Lock every request/reply method (anything doing `.Reply()`/`.Check()`): window ops, atoms, graphics, grabs, keyboard, color allocation, `Close`, `NewWindowID`.
+- `WaitForEvent` locks while blocking, so requests can't interleave with event reads.
+- No lock on setup getters (`Screen`, `RootWindow`, `Colormap`, `BlackPixel`, `WhitePixel`) — setup data is immutable after connect.
+- Composite methods lock once and call unexported unlocked helpers:
+  - `AllocColorRGB` → `allocColor`
+  - `Keyboard()` → `keyMapping()` / `numLockMask()`
+  - `GrabAllCombos` / `UngrabAllCombos` → `grabKey()` / `ungrabKey()`
+- `InternAtom` guards the `atoms` cache with the same mutex.
+- Delete stale `keys.go` (superseded by `keyboard.go` / `grab.go`); move `ParseModifiers` / `ParseModifierString` to `keymap.go` where `modifierMap` lives.
+- `Connection` is pointer-only — never copied (mutex).
 
 ### 1. `internal/x11/wm.go` — low-level X primitives
 
