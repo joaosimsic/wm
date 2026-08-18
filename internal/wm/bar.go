@@ -146,10 +146,10 @@ func (b *Bar) truncate(s string, maxWidth int) string {
 			return s
 		}
 
-        _, size := utf8.DecodeLastRuneInString(s)
+		_, size := utf8.DecodeLastRuneInString(s)
 
-        s = s[:len(s)-size]
+		s = s[:len(s)-size]
 	}
 
-    return s
+	return s
 }
