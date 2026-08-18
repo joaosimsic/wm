@@ -52,3 +52,16 @@ func (c *Connection) SetBorderWidth(win xproto.Window, width int) error {
 func (c *Connection) SetBorderColor(win xproto.Window, pixel uint32) error {
 	return xproto.ChangeWindowAttributesChecked(c.conn, win, xproto.CwBorderPixel, []uint32{pixel}).Check()
 }
+
+func (c *Connection) GetGeometry(win xproto.Window) (x, y, w, h int, err error) {
+	reply, err := xproto.GetGeometry(c.conn, xproto.Drawable(win)).Reply()
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+
+	return int(reply.X), int(reply.Y), int(reply.Width), int(reply.Height), nil
+}
+
+func (c *Connection) GetAttributes(win xproto.Window) (*xproto.GetWindowAttributesReply, error) {
+	return xproto.GetWindowAttributes(c.conn, win).Reply()
+}
