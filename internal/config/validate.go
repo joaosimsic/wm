@@ -32,5 +32,25 @@ func validate(cfg *Config) []error {
 		cfg.Font = def.Font
 	}
 
+	if cfg.Mod == "" {
+		errs = append(errs, fmt.Errorf("mod missing, using default %q", def.Mod))
+		cfg.Mod = def.Mod
+	}
+
+	if cfg.SplitRatio <= 0 || cfg.SplitRatio >= 1 {
+		errs = append(errs, fmt.Errorf("split_ratio must be between 0 and 1: %f, using default %f", cfg.SplitRatio, def.SplitRatio))
+		cfg.SplitRatio = def.SplitRatio
+	}
+
+	if cfg.Workspaces < 1 {
+		errs = append(errs, fmt.Errorf("workspaces must be at least 1: %d, using default %d", cfg.Workspaces, def.Workspaces))
+		cfg.Workspaces = def.Workspaces
+	}
+
+	if len(cfg.Keys) == 0 {
+		errs = append(errs, fmt.Errorf("keys missing, using defaults"))
+		cfg.Keys = def.Keys
+	}
+
 	return errs
 }
