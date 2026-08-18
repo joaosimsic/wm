@@ -64,3 +64,16 @@ func (c *Connection) TextWidth(font xproto.Font, s string) (int, error) {
 
 	return int(reply.OverallWidth), nil
 }
+
+func (c *Connection) FontMetrics(font xproto.Font) (ascent, descent int, err error) {
+	reply, err := xproto.QueryFont(c.conn, xproto.Fontable(font)).Reply()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return int(reply.FontAscent), int(reply.FontDescent), nil
+}
+
+func (c *Connection) RaiseWindow(win xproto.Window) error {
+	return xproto.ConfigureWindowChecked(c.conn, win, xproto.ConfigWindowStackMode, []uint32{uint32(xproto.StackModeAbove)}).Check()
+}
