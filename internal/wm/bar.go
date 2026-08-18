@@ -29,47 +29,51 @@ type Bar struct {
 	ascent, descent int
 }
 
-func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (bar *Bar, err error) {
-	bar = &Bar{conn: conn}
+func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (*Bar, error) {
+    b := &Bar{conn: conn}
+    ok := false
 	defer func() {
-		if err != nil {
-			bar.Close()
+		if !ok {
+			b.Close()
 		}
 	}()
 
-	if bar.win, err = conn.CreateWindow(conn.RootWindow(), 0, 0, bar.sw, bar.height, 0, pal.BarBg, pal.BarBg); err != nil {
+    var err error
+
+	if b.win, err = conn.CreateWindow(conn.RootWindow(), 0, 0, b.sw, b.height, 0, pal.BarBg, pal.BarBg); err != nil {
 		return nil, err
 	}
 
-	if bar.gcBg, err = conn.NewGC(pal.BarBg, pal.BarBg); err != nil {
+	if b.gcBg, err = conn.NewGC(pal.BarBg, pal.BarBg); err != nil {
 		return nil, err
 	}
 
-	if bar.gc, err = conn.NewGC(pal.BarFg, pal.BarBg); err != nil {
+	if b.gc, err = conn.NewGC(pal.BarFg, pal.BarBg); err != nil {
 		return nil, err
 	}
 
-	if bar.gcActiveFill, err = conn.NewGC(pal.BarActiveBg, pal.BarActiveBg); err != nil {
+	if b.gcActiveFill, err = conn.NewGC(pal.BarActiveBg, pal.BarActiveBg); err != nil {
 		return nil, err
 	}
 
-	if bar.font, err = conn.OpenFont(cfg.Font); err != nil {
+	if b.font, err = conn.OpenFont(cfg.Font); err != nil {
 		return nil, err
 	}
 
-	if bar.ascent, bar.descent, err = conn.FontMetrics(bar.font); err != nil {
+	if b.ascent, b.descent, err = conn.FontMetrics(b.font); err != nil {
 		return nil, err
 	}
 
-	if err := conn.SelectWindowEvents(bar.win, xproto.EventMaskExposure); err != nil {
+	if err := conn.SelectWindowEvents(b.win, xproto.EventMaskExposure); err != nil {
 		return nil, err
 	}
 
-	if err := conn.MapWindow(bar.win); err != nil {
+	if err := conn.MapWindow(b.win); err != nil {
 		return nil, err
 	}
 
-	return bar, nil
+    ok = true
+	return b, nil
 }
 
 func (b *Bar) Close() {
