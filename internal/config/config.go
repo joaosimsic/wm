@@ -7,12 +7,16 @@ import (
 )
 
 type Config struct {
-	Terminal    string `toml:"terminal"`
-	Font        string `toml:"font"`
-	BorderWidth int    `toml:"border_width"`
-	Gap         int    `toml:"gap"`
-	BarHeight   int    `toml:"bar_height"`
-	Colors      Colors `toml:"colors"`
+	Terminal    string            `toml:"terminal"`
+	Font        string            `toml:"font"`
+	BorderWidth int               `toml:"border_width"`
+	Gap         int               `toml:"gap"`
+	BarHeight   int               `toml:"bar_height"`
+	Colors      Colors            `toml:"colors"`
+	Mod         string            `toml:"mod"`
+	SplitRatio  float64           `toml:"split_ratio"`
+	Workspaces  int               `toml:"workspaces"`
+	Keys        map[string]string `toml:"keys"`
 }
 
 func Load() (*Config, error) {
