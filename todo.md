@@ -1,0 +1,2 @@
+- [ ] too many _ with no handled errors, this misses the point of returning errors
+- [ ] manager is doing too much

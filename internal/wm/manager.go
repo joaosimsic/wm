@@ -29,6 +29,7 @@ type Manager struct {
 	bindings map[xproto.Keycode]map[uint16]func(*Manager) error
 	ratio    float64
 	running  bool
+	done     chan struct{}
 }
 
 func New(conn *x11.Connection, cfg *config.Config, pal *theme.Palette, log *zap.Logger) (*Manager, error) {
@@ -215,30 +216,30 @@ func (m *Manager) actions() map[string]func(*Manager) error {
 		a[fmt.Sprintf("move_to_workspace_%d", wsId)] = func(m *Manager) error { return m.moveTpWorkspace(wsId) }
 	}
 
-    return a
+	return a
 }
 
 func (m *Manager) manage(win xproto.Window) error {
-    geo, err := m.conn.GetGeometry(win)
-    if err != nil {
-        return err
-    }
+	geo, err := m.conn.GetGeometry(win)
+	if err != nil {
+		return err
+	}
 
-    style := FrameStyle{
-        BorderWidth: m.cfg.BorderWidth,
-        Background: m.pal.BarBg,
-        BorderActive: m.pal.BorderActive,
-        BorderInactive: m.pal.BorderInactive,
-    }
+	style := FrameStyle{
+		BorderWidth:    m.cfg.BorderWidth,
+		Background:     m.pal.BarBg,
+		BorderActive:   m.pal.BorderActive,
+		BorderInactive: m.pal.BorderInactive,
+	}
 
-    frame, err := newFrame(m.conn, style, int(geo.X), int(geo.Y), int(geo.Width), int(geo.Height))
-    if err != nil {
-        return err
-    }
+	frame, err := newFrame(m.conn, style, int(geo.X), int(geo.Y), int(geo.Width), int(geo.Height))
+	if err != nil {
+		return err
+	}
 
-    if err := m.conn.ReparentWindow(win, frame, 0, 0); err != nil {
-        return err
-    }
+	if err := m.conn.ReparentWindow(win, frame, 0, 0); err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
