@@ -33,9 +33,11 @@ func DefaultKeys() map[string]string {
 		"shrink_master": "h",
 	}
 
+	oneIndexedWs := 1
 	for i := range defaultWorkspaces {
-		keys[fmt.Sprintf("workspace_%d", i)] = fmt.Sprintf("%d", i)
-		keys[fmt.Sprintf("move_to_workspace_%d", i)] = fmt.Sprintf("Shift+%d", i)
+		id := i + oneIndexedWs
+		keys[fmt.Sprintf("workspace_%d", id)] = fmt.Sprintf("%d", id)
+		keys[fmt.Sprintf("move_to_workspace_%d", id)] = fmt.Sprintf("Shift+%d", id)
 	}
 
 	return keys

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/joaosimsic/wm/internal/config"
 	"github.com/joaosimsic/wm/internal/theme"
+	"github.com/joaosimsic/wm/internal/wm"
 	"github.com/joaosimsic/wm/internal/x11"
 	"go.uber.org/zap"
 )
@@ -41,4 +42,14 @@ func main() {
 		zap.String("font", cfg.Font),
 		zap.Uint32("border_active_pixel", palette.BorderActive),
 	)
+
+	m, err := wm.New(conn, cfg, palette, logger)
+	if err != nil {
+		logger.Fatal("failed to init wm", zap.Error(err))
+	}
+
+	if err := m.Run(); err != nil {
+		logger.Fatal("wm error", zap.Error(err))
+	}
+	logger.Info("wm exited")
 }

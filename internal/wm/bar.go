@@ -31,7 +31,11 @@ type Bar struct {
 }
 
 func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (*Bar, error) {
-	b := &Bar{conn: conn}
+	b := &Bar{
+		conn:   conn,
+		sw:     int(conn.Screen().WidthInPixels),
+		height: cfg.BarHeight,
+	}
 	ok := false
 	defer func() {
 		if !ok {

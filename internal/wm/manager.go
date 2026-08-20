@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const oneIndexedWs = 1
+
 type Manager struct {
 	conn *x11.Connection
 	cfg  *config.Config
@@ -74,9 +76,13 @@ func (m *Manager) Close() {
 }
 
 func (m *Manager) Run() error {
-	m.running = true
+	for {
+		select {
+		case <-m.done:
+			return nil
+		default:
+		}
 
-	for m.running {
 		ev, xerr := m.conn.WaitForEvent()
 		if xerr != nil {
 			m.log.Warn("x11 error", zap.Error(xerr))
@@ -88,8 +94,6 @@ func (m *Manager) Run() error {
 
 		m.handle(ev)
 	}
-
-	return nil
 }
 
 func (m *Manager) setup() error {
@@ -110,7 +114,7 @@ func (m *Manager) setup() error {
 	m.modMask = mods
 
 	for i := range m.cfg.Workspaces {
-		m.workspaces = append(m.workspaces, &Workspace{id: i})
+		m.workspaces = append(m.workspaces, &Workspace{id: i + oneIndexedWs})
 	}
 	m.current = m.workspaces[0]
 
@@ -127,13 +131,15 @@ func (m *Manager) setup() error {
 	mask := xproto.EventMaskSubstructureRedirect |
 		xproto.EventMaskSubstructureNotify |
 		xproto.EventMaskStructureNotify |
-		xproto.EventMaskStructureNotify
+		xproto.EventMaskPropertyChange
 
 	if err := m.conn.SelectRootEvents(uint32(mask)); err != nil {
 		return err
 	}
 
-	return m.adoptExisting()
+	m.focusFirst()
+	m.redrawBar()
+	return nil
 }
 
 func (m *Manager) adoptExisting() error {
@@ -212,8 +218,9 @@ func (m *Manager) actions() map[string]func(*Manager) error {
 	}
 
 	for wsId := range m.cfg.Workspaces {
-		a[fmt.Sprintf("workspace_%d", wsId)] = func(m *Manager) error { return m.switchTo(wsId) }
-		a[fmt.Sprintf("move_to_workspace_%d", wsId)] = func(m *Manager) error { return m.moveTpWorkspace(wsId) }
+		id := wsId + oneIndexedWs
+		a[fmt.Sprintf("workspace_%d", id)] = func(m *Manager) error { return m.switchTo(id) }
+		a[fmt.Sprintf("move_to_workspace_%d", id)] = func(m *Manager) error { return m.moveToWorkspace(id) }
 	}
 
 	return a

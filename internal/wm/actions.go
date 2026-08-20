@@ -4,7 +4,6 @@ import (
 	"os/exec"
 
 	"github.com/jezek/xgb/xproto"
-	"go.uber.org/zap"
 )
 
 func (m *Manager) spawn() error {
@@ -160,25 +159,4 @@ func clamp(r float64) float64 {
 		return 0.95
 	}
 	return r
-}
-
-func (m *Manager) Run() error {
-	for {
-		select {
-		case <-m.done:
-			return nil
-		default:
-		}
-
-		ev, xerr := m.conn.WaitForEvent()
-		if xerr != nil {
-			m.log.Warn("x11 error", zap.Error(xerr))
-			continue
-		}
-		if ev == nil {
-			continue
-		}
-
-		m.handle(ev)
-	}
 }
