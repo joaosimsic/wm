@@ -9,6 +9,7 @@ import (
 	"github.com/joaosimsic/wm/internal/config"
 	"github.com/joaosimsic/wm/internal/theme"
 	"github.com/joaosimsic/wm/internal/x11"
+	"go.uber.org/zap"
 )
 
 const (
@@ -30,15 +31,15 @@ type Bar struct {
 }
 
 func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (*Bar, error) {
-    b := &Bar{conn: conn}
-    ok := false
+	b := &Bar{conn: conn}
+	ok := false
 	defer func() {
 		if !ok {
 			b.Close()
 		}
 	}()
 
-    var err error
+	var err error
 
 	if b.win, err = conn.CreateWindow(conn.RootWindow(), 0, 0, b.sw, b.height, 0, pal.BarBg, pal.BarBg); err != nil {
 		return nil, err
@@ -72,8 +73,28 @@ func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (*Bar,
 		return nil, err
 	}
 
-    ok = true
+	ok = true
 	return b, nil
+}
+
+func (m *Manager) redrawBar() {
+	if m.bar == nil {
+		return
+	}
+
+	if err := m.bar.draw(m.workspaces, m.current, m.focused); err != nil {
+		m.log.Warn("draw bar", zap.Error(err))
+	}
+}
+
+func (m *Manager) updateTitle(c *Client) {
+	data, err := m.conn.GetProperty(c.win, m.atoms.netWMName, xproto.AtomString)
+	if err != nil || len(data) == 0 {
+		data, _ = m.conn.GetProperty(c.win, xproto.AtomWmName, xproto.AtomString)
+	}
+
+	c.title = string(data)
+	m.redrawBar()
 }
 
 func (b *Bar) Close() {
