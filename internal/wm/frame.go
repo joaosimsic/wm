@@ -12,6 +12,6 @@ type FrameStyle struct {
 	BorderInactive uint32
 }
 
-func newFrame(c *x11.Connection, style FrameStyle, x, y, w, h int) (xproto.Window, error) {
-	return c.CreateWindow(c.RootWindow(), x, y, w, h, style.BorderWidth, style.Background, style.BorderActive)
+func newFrame(c *x11.Connection, style FrameStyle, r rect) (xproto.Window, error) {
+	return c.CreateWindow(c.RootWindow(), r.x, r.y, r.w, r.h, style.BorderWidth, style.Background, style.BorderActive)
 }

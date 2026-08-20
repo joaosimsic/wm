@@ -42,7 +42,7 @@ func (m *Manager) onMapRequest(e xproto.MapRequestEvent) {
 
 func (m *Manager) onConfigureRequest(e xproto.ConfigureRequestEvent) {
 	if c, ok := m.clients[e.Window]; ok {
-		_ = m.conn.MoveResize(c.frame, c.x, c.y, c.w, c.h)
+		_ = m.conn.MoveResize(c.frame, c.r.x, c.r.y, c.r.w, c.r.h)
 		return
 	}
 

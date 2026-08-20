@@ -1,6 +1,9 @@
 package wm
 
-import "github.com/joaosimsic/wm/internal/x11"
+import (
+	"github.com/jezek/xgb/xproto"
+	"github.com/joaosimsic/wm/internal/x11"
+)
 
 type rect struct {
 	x, y, w, h int
@@ -39,7 +42,7 @@ func (m *Manager) arrange() {
 }
 
 func (m *Manager) place(c *Client, r rect) {
-	c.x, c.y, c.w, c.h = r.x, r.y, r.w, r.h
+	c.r = r
 	_ = m.conn.MoveResize(c.frame, r.x, r.y, r.w, r.h)
 }
 
@@ -72,3 +75,12 @@ func (m *Manager) focusClient(c *Client) {
 
 func (m *Manager) hide(c *Client) { _ = m.conn.UnmapWindow(c.frame) }
 func (m *Manager) show(c *Client) { _ = m.conn.MapWindow(c.frame) }
+
+func (m *Manager) geometry(win xproto.Window) (rect, error) {
+	x, y, w, h, err := m.conn.GetGeometry(win)
+	if err != nil {
+		return rect{}, err
+	}
+
+	return rect{x, y, w, h}, nil
+}

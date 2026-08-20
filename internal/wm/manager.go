@@ -227,7 +227,7 @@ func (m *Manager) actions() map[string]func(*Manager) error {
 }
 
 func (m *Manager) manage(win xproto.Window) error {
-	geo, err := m.conn.GetGeometry(win)
+	r, err := m.geometry(win)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (m *Manager) manage(win xproto.Window) error {
 		BorderInactive: m.pal.BorderInactive,
 	}
 
-	frame, err := newFrame(m.conn, style, int(geo.X), int(geo.Y), int(geo.Width), int(geo.Height))
+	frame, err := newFrame(m.conn, style, r)
 	if err != nil {
 		return err
 	}
