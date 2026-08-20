@@ -50,10 +50,8 @@ func (m *Manager) focusStep(dir int) error {
 		return nil
 	}
 
-	i, _ := m.current.index(m.focused)
-	if i < 0 {
-		i = 0
-	}
+	i := m.current.index(m.focused)
+	i = max(0, i)
 	i = (i + dir + len(l)) % len(l)
 
 	m.focusClient(l[i])
@@ -61,7 +59,7 @@ func (m *Manager) focusStep(dir int) error {
 }
 
 func (m *Manager) swap(delta int) error {
-	i, _ := m.current.index(m.focused)
+	i := m.current.index(m.focused)
 	l := m.current.list
 	j := i + delta
 	if j < 0 || j >= len(l)-1 {

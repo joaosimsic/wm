@@ -10,20 +10,20 @@ func (w *Workspace) add(c *Client) {
 }
 
 func (w *Workspace) remove(c *Client) {
-	i, ok := w.index(c)
-	if !ok {
+	i := w.index(c)
+	if i < 0 {
 		return
 	}
 
 	w.list = append(w.list[:i], w.list[i+1:]...)
 }
 
-func (w *Workspace) index(c *Client) (int, bool) {
+func (w *Workspace) index(c *Client) int {
 	for i, client := range w.list {
 		if client == c {
-			return i, true
+			return i
 		}
 	}
 
-	return 0, false
+	return -1
 }
