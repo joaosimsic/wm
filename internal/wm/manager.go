@@ -125,7 +125,7 @@ func (m *Manager) setup() error {
 	m.current = m.workspaces[0]
 
 	XCLeftPtr := uint16(68)
-	cursor, err := m.conn.CreateFontCursor(XCLeftPtr, XCLeftPtr)
+	cursor, err := m.conn.CreateFontCursor(XCLeftPtr, XCLeftPtr+1)
 	if err != nil {
 		return err
 	}
