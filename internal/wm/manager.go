@@ -28,6 +28,7 @@ type Manager struct {
 	focused    *Client
 
 	bar      *Bar
+	cursor   xproto.Cursor
 	bindings map[xproto.Keycode]map[uint16]func(*Manager) error
 	ratio    float64
 	done     chan struct{}
@@ -123,7 +124,14 @@ func (m *Manager) setup() error {
 	}
 	m.current = m.workspaces[0]
 
-	bar, err := newBar(m.conn, m.cfg, m.pal)
+	XCLeftPtr := uint16(68)
+	cursor, err := m.conn.CreateFontCursor(XCLeftPtr, XCLeftPtr)
+	if err != nil {
+		return err
+	}
+	m.cursor = cursor
+
+	bar, err := newBar(m.conn, m.cfg, m.pal, m.cursor)
 	if err != nil {
 		return err
 	}
@@ -139,6 +147,10 @@ func (m *Manager) setup() error {
 		xproto.EventMaskPropertyChange
 
 	if err := m.conn.SelectRootEvents(uint32(mask)); err != nil {
+		return err
+	}
+
+	if err := m.conn.SetCursor(m.conn.RootWindow(), cursor); err != nil {
 		return err
 	}
 
@@ -246,6 +258,7 @@ func (m *Manager) manage(win xproto.Window) error {
 		Background:     m.pal.BarBg,
 		BorderActive:   m.pal.BorderActive,
 		BorderInactive: m.pal.BorderInactive,
+		Cursor:         m.cursor,
 	}
 
 	frame, err := newFrame(m.conn, style, r)

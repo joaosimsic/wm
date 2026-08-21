@@ -10,8 +10,26 @@ type FrameStyle struct {
 	Background     uint32
 	BorderActive   uint32
 	BorderInactive uint32
+	Cursor         xproto.Cursor
 }
 
 func newFrame(c *x11.Connection, style FrameStyle, r rect) (xproto.Window, error) {
-	return c.CreateWindowOR(c.RootWindow(), r.x, r.y, r.w, r.h, style.BorderWidth, style.Background, style.BorderActive)
+	win, err := c.CreateWindowOR(
+		c.RootWindow(),
+		r.x,
+		r.y,
+		r.w,
+		r.h,
+		style.BorderWidth,
+		style.Background,
+		style.BorderActive)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := c.SetCursor(win, style.Cursor); err != nil {
+		return 0, err
+	}
+
+	return win, nil
 }

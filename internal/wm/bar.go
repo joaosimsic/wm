@@ -30,7 +30,7 @@ type Bar struct {
 	ascent, descent int
 }
 
-func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (*Bar, error) {
+func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette, cursor xproto.Cursor) (*Bar, error) {
 	b := &Bar{
 		conn:   conn,
 		sw:     int(conn.Screen().WidthInPixels),
@@ -46,6 +46,10 @@ func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette) (*Bar,
 	var err error
 
 	if b.win, err = conn.CreateWindow(conn.RootWindow(), 0, 0, b.sw, b.height, 0, pal.BarBg, pal.BarBg); err != nil {
+		return nil, err
+	}
+
+	if err := conn.SetCursor(b.win, cursor); err != nil {
 		return nil, err
 	}
 
