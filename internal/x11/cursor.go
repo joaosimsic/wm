@@ -34,7 +34,6 @@ func (c *Connection) CreateCursor() (xproto.Cursor, error) {
         return 0, err
     }
 
-    maskGC, err :=
 }
 
 func (c *Connection) SetCursor(win xproto.Window, cursor xproto.Cursor) error {
@@ -59,6 +58,10 @@ func createPixmap(conn *xgb.Conn) (xproto.Pixmap, error) {
     }
 
     return pixmap, nil
+}
+
+func createGC(conn *xgb.Conn, pixmap xproto.Pixmap) (xproto.Gcontext, error) {
+
 }
 
 // adding cursor, it was not visible, everything was black
