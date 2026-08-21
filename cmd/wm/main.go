@@ -1,6 +1,9 @@
 package main
 
 import (
+	"io"
+
+	"github.com/jezek/xgb"
 	"github.com/joaosimsic/wm/internal/config"
 	"github.com/joaosimsic/wm/internal/theme"
 	"github.com/joaosimsic/wm/internal/wm"
@@ -17,11 +20,13 @@ func main() {
 		_ = logger.Sync()
 	}()
 
+	xgb.Logger.SetOutput(io.Discard)
+
 	logger.Info("Starting WM")
 
 	cfg, err := config.Load()
 	if err != nil {
-		logger.Warn("config issues, using defaults where possible", zap.Error(err))
+		logger.Info("config not found, using defaults", zap.Error(err))
 	}
 
 	conn, err := x11.Connect()

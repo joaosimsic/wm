@@ -5,10 +5,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -96,9 +98,16 @@ func logProcessOutput(
 	scanner := bufio.NewScanner(reader)
 
 	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "xkbcomp") ||
+			strings.Contains(line, "Could not resolve keysym") ||
+			strings.Contains(line, "Errors from xkbcomp are not fatal") {
+			continue
+		}
+
 		logger.Debug("Xephyr",
 			zap.String("source", source),
-			zap.String("message", scanner.Text()),
+			zap.String("message", line),
 		)
 	}
 
@@ -120,10 +129,11 @@ func waitForX(display string) error {
 	deadline := time.Now().Add(timeout)
 
 	for time.Now().Before(deadline) {
-		if _, err := os.Stat(addr); err == nil {
+		conn, err := net.Dial("unix", addr)
+		if err == nil {
+			conn.Close()
 			return nil
 		}
-
 		time.Sleep(retry)
 	}
 

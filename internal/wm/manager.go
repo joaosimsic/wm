@@ -84,6 +84,10 @@ func (m *Manager) Run() error {
 		}
 
 		ev, xerr := m.conn.WaitForEvent()
+		if ev == nil && xerr == nil {
+			m.log.Error("x11 Connection closed")
+			return fmt.Errorf("x11 connection closed")
+		}
 		if xerr != nil {
 			m.log.Warn("x11 error", zap.Error(xerr))
 			continue
@@ -92,6 +96,7 @@ func (m *Manager) Run() error {
 			continue
 		}
 
+		m.log.Debug("event", zap.String("type", fmt.Sprintf("%T", ev)))
 		m.handle(ev)
 	}
 }
