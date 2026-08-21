@@ -13,5 +13,5 @@ type FrameStyle struct {
 }
 
 func newFrame(c *x11.Connection, style FrameStyle, r rect) (xproto.Window, error) {
-	return c.CreateWindow(c.RootWindow(), r.x, r.y, r.w, r.h, style.BorderWidth, style.Background, style.BorderActive)
+	return c.CreateWindowOR(c.RootWindow(), r.x, r.y, r.w, r.h, style.BorderWidth, style.Background, style.BorderActive)
 }

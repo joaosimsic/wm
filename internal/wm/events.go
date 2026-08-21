@@ -26,6 +26,11 @@ func (m *Manager) handle(ev xgb.Event) {
 }
 
 func (m *Manager) onMapRequest(e xproto.MapRequestEvent) {
+	if _, ok := m.clients[e.Window]; ok {
+		_ = m.conn.MapWindow(e.Window)
+		return
+	}
+
 	attrs, err := m.conn.GetAttributes(e.Window)
 	if err != nil {
 		return

@@ -8,7 +8,50 @@ func (c *Connection) CreateWindow(parent xproto.Window, x, y, w, h, bw int, bg, 
 		return 0, err
 	}
 
-	err = xproto.CreateWindowChecked(c.conn, c.Screen().RootDepth, win, parent, int16(x), int16(y), uint16(w), uint16(h), uint16(bw), xproto.WindowClassInputOutput, c.Screen().RootVisual, xproto.CwBackPixel|xproto.CwBorderPixel, []uint32{bg, border}).Check()
+	err = xproto.CreateWindowChecked(
+		c.conn,
+		c.Screen().RootDepth,
+		win,
+		parent,
+		int16(x),
+		int16(y),
+		uint16(w),
+		uint16(h),
+		uint16(bw),
+		xproto.WindowClassInputOutput,
+		c.Screen().RootVisual,
+		xproto.CwBackPixel|xproto.CwBorderPixel,
+		[]uint32{bg, border}).Check()
+	if err != nil {
+		return 0, err
+	}
+
+	return win, nil
+}
+
+func (c *Connection) CreateWindowOR(parent xproto.Window, x, y, w, h, bw int, bg, border uint32) (xproto.Window, error) {
+	win, err := c.NewWindowID()
+	if err != nil {
+		return 0, err
+	}
+
+	CwOverrideRedirectValue := uint32(1)
+	values := []uint32{bg, border, CwOverrideRedirectValue}
+
+	err = xproto.CreateWindowChecked(
+		c.conn,
+		c.Screen().RootDepth,
+		win,
+		parent,
+		int16(x),
+		int16(y),
+		uint16(w),
+		uint16(h),
+		uint16(bw),
+		xproto.WindowClassInputOutput,
+		c.Screen().RootVisual,
+		xproto.CwBackPixel|xproto.CwBorderPixel|xproto.CwOverrideRedirect,
+		values).Check()
 	if err != nil {
 		return 0, err
 	}
@@ -42,7 +85,11 @@ func (c *Connection) QueryTree(win xproto.Window) (xproto.Window, []xproto.Windo
 }
 
 func (c *Connection) MoveResize(win xproto.Window, x, y, w, h int) error {
-	return xproto.ConfigureWindowChecked(c.conn, win, xproto.ConfigWindowX|xproto.ConfigWindowY|xproto.ConfigWindowWidth|xproto.ConfigWindowHeight, []uint32{uint32(x), uint32(y), uint32(w), uint32(h)}).Check()
+	return xproto.ConfigureWindowChecked(
+		c.conn,
+		win,
+		xproto.ConfigWindowX|xproto.ConfigWindowY|xproto.ConfigWindowWidth|xproto.ConfigWindowHeight,
+		[]uint32{uint32(x), uint32(y), uint32(w), uint32(h)}).Check()
 }
 
 func (c *Connection) SetBorderWidth(win xproto.Window, width int) error {

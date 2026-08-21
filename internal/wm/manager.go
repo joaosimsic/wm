@@ -43,6 +43,7 @@ func New(conn *x11.Connection, cfg *config.Config, pal *theme.Palette, log *zap.
 		clients:  make(map[xproto.Window]*Client),
 		bindings: make(map[xproto.Keycode]map[uint16]func(*Manager) error),
 		ratio:    cfg.SplitRatio,
+		done:     make(chan struct{}),
 	}
 
 	if err := m.setup(); err != nil {
@@ -137,6 +138,10 @@ func (m *Manager) setup() error {
 		return err
 	}
 
+	if err := m.adoptExisting(); err != nil {
+		return err
+	}
+
 	m.focusFirst()
 	m.redrawBar()
 	return nil
@@ -217,8 +222,8 @@ func (m *Manager) actions() map[string]func(*Manager) error {
 		"shrink_master": (*Manager).shrinkMaster,
 	}
 
-	for wsId := range m.cfg.Workspaces {
-		id := wsId + oneIndexedWs
+	for wsID := range m.cfg.Workspaces {
+		id := wsID + oneIndexedWs
 		a[fmt.Sprintf("workspace_%d", id)] = func(m *Manager) error { return m.switchTo(id) }
 		a[fmt.Sprintf("move_to_workspace_%d", id)] = func(m *Manager) error { return m.moveToWorkspace(id) }
 	}
@@ -248,5 +253,37 @@ func (m *Manager) manage(win xproto.Window) error {
 		return err
 	}
 
+	if err := m.conn.SetBorderWidth(win, 0); err != nil {
+		return err
+	}
+
+	if err := m.conn.SelectWindowEvents(win, xproto.EventMaskPropertyChange); err != nil {
+		return err
+	}
+
+	if err := m.setWMProtocols(win); err != nil {
+		return err
+	}
+
+	c := &Client{
+		win:   win,
+		frame: frame,
+		ws:    m.current,
+	}
+	m.clients[win] = c
+	m.current.add(c)
+
+	m.updateTitle(c)
+
+	if err := m.conn.MapWindow(frame); err != nil {
+		return err
+	}
+
+	if err := m.conn.MapWindow(win); err != nil {
+		return err
+	}
+
+	m.focusClient(c)
+	m.arrange()
 	return nil
 }
