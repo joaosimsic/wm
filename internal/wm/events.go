@@ -47,8 +47,15 @@ func (m *Manager) onMapRequest(e xproto.MapRequestEvent) {
 
 func (m *Manager) onConfigureRequest(e xproto.ConfigureRequestEvent) {
 	if c, ok := m.clients[e.Window]; ok {
-		_ = m.conn.MoveResize(c.frame, c.r.x, c.r.y, c.r.w, c.r.h)
+		_ = m.conn.MoveResize(c.frame, int(e.X), int(e.Y), c.r.w, c.r.h)
+		_ = m.conn.MoveResize(c.frame, m.cfg.BorderWidth, m.cfg.BorderWidth, c.r.w-2*m.cfg.BorderWidth, c.r.h-2*m.cfg.BorderWidth)
 		return
+	}
+
+	for _, c := range m.clients {
+		if c.frame == e.Window {
+			return
+		}
 	}
 
 	_ = m.conn.MoveResize(e.Window, int(e.X), int(e.Y), int(e.Width), int(e.Height))

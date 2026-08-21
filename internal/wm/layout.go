@@ -43,7 +43,9 @@ func (m *Manager) arrange() {
 
 func (m *Manager) place(c *Client, r rect) {
 	c.r = r
+	bw := m.cfg.BorderWidth
 	_ = m.conn.MoveResize(c.frame, r.x, r.y, r.w, r.h)
+	_ = m.conn.MoveResize(c.win, bw, bw, r.w-2*bw, r.h-2*bw)
 }
 
 func (m *Manager) updateBorders() {

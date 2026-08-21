@@ -30,7 +30,6 @@ type Manager struct {
 	bar      *Bar
 	bindings map[xproto.Keycode]map[uint16]func(*Manager) error
 	ratio    float64
-	running  bool
 	done     chan struct{}
 }
 
@@ -249,7 +248,7 @@ func (m *Manager) manage(win xproto.Window) error {
 		return err
 	}
 
-	if err := m.conn.ReparentWindow(win, frame, 0, 0); err != nil {
+	if err := m.conn.ReparentWindow(win, frame, m.cfg.BorderWidth, m.cfg.BorderWidth); err != nil {
 		return err
 	}
 
