@@ -49,9 +49,7 @@ func newBar(conn *x11.Connection, cfg *config.Config, pal *theme.Palette, cursor
 		return nil, err
 	}
 
-	if err := conn.SetCursor(b.win, cursor); err != nil {
-		return nil, err
-	}
+	_ = conn.SetCursor(b.win, cursor)
 
 	if b.gcBg, err = conn.NewGC(pal.BarBg, pal.BarBg); err != nil {
 		return nil, err

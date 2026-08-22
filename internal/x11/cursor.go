@@ -88,7 +88,7 @@ func createPixmap(conn *xgb.Conn, win xproto.Window) (xproto.Pixmap, error) {
 
 	if err := xproto.CreatePixmapChecked(
 		conn,
-		1,
+		cursorDepth,
 		pixmap,
 		xproto.Drawable(win),
 		cursorSize,

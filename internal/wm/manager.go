@@ -124,12 +124,15 @@ func (m *Manager) setup() error {
 	}
 	m.current = m.workspaces[0]
 
-	XCLeftPtr := uint16(68)
-	cursor, err := m.conn.CreateFontCursor(XCLeftPtr, XCLeftPtr+1)
+	cursor, err := m.conn.CreateCursor()
 	if err != nil {
-		return err
+		m.log.Warn("create cursor", zap.Error(err))
+	} else {
+		m.cursor = cursor
+		if err := m.conn.SetCursor(m.conn.RootWindow(), cursor); err != nil {
+			m.log.Warn("set root cursor", zap.Error(err))
+		}
 	}
-	m.cursor = cursor
 
 	bar, err := newBar(m.conn, m.cfg, m.pal, m.cursor)
 	if err != nil {

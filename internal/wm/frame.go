@@ -27,9 +27,7 @@ func newFrame(c *x11.Connection, style FrameStyle, r rect) (xproto.Window, error
 		return 0, err
 	}
 
-	if err := c.SetCursor(win, style.Cursor); err != nil {
-		return 0, err
-	}
+	_ = c.SetCursor(win, style.Cursor)
 
 	return win, nil
 }
